@@ -5,20 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calculadora Tufting</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.5; }
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
     h1, h2 { text-align: center; color: #d81e5b; }
-    .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    th { background: #f2f2f2; }
-    input, select, button { padding: 8px; margin: 5px 4px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background: #4caf50; color: white; border: none; cursor: pointer; }
-    button:hover { background: #45a049; }
+    .section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.12); margin-bottom: 35px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background: #f5f5f5; font-weight: bold; }
+    input, select, button { padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+    button { background: #4caf50; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #43a047; }
     .delete-btn { background: #f44336; }
-    .delete-btn:hover { background: #da190b; }
-    .total { font-size: 1.5em; font-weight: bold; margin: 25px 0; padding: 20px; background: #e0f7fa; border-radius: 10px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-    .error { color: red; font-weight: bold; margin: 10px 0; }
+    .delete-btn:hover { background: #d32f2f; }
+    .total-box { font-size: 1.6em; font-weight: bold; margin: 30px 0; padding: 25px; background: #e3f2fd; border-radius: 12px; text-align: center; border: 2px solid #90caf9; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .error { color: #d32f2f; font-weight: bold; margin: 12px 0; }
+    .small { font-size: 0.9em; color: #555; }
   </style>
 </head>
 <body>
@@ -29,12 +30,12 @@
   <h2>1. Administrar Lanas (precio por gramo)</h2>
   <div class="grid">
     <div>
-      <input type="text" id="nuevaLana" placeholder="Nombre lana (ej: Chenille Azul)" />
+      <input type="text" id="nuevaLana" placeholder="Nombre (ej: Chenille Rosa)" />
       <input type="number" id="precioGramo" placeholder="Precio por gramo (ARS)" step="0.01" min="0" />
       <button onclick="agregarLana()">+ Agregar / Actualizar</button>
     </div>
     <div>
-      <button onclick="resetearTodo()" class="delete-btn">Limpiar TODO (catálogo)</button>
+      <button onclick="resetearTodo()" class="delete-btn">Limpiar TODO el catálogo</button>
     </div>
   </div>
 
@@ -44,7 +45,7 @@
     <thead>
       <tr>
         <th>Lana</th>
-        <th>Precio por gramo (ARS)</th>
+        <th>Precio por gramo</th>
         <th>Acción</th>
       </tr>
     </thead>
@@ -52,86 +53,176 @@
   </table>
 </div>
 
-<!-- Sección 2: Proyecto (agregá tu tabla de proyecto aquí si la tenías separada) -->
 <div class="section">
   <h2>2. Nuevo Proyecto</h2>
-  <!-- Poné aquí tu tabla de proyecto, inputs de gramos, totales, etc. -->
-  <!-- Por ahora un placeholder simple -->
-  <p>Agregá aquí la lógica de proyecto cuando la tengas lista.</p>
+
+  <label>Nombre del proyecto:</label><br>
+  <input type="text" id="nombreProyecto" placeholder="Ej: Alfombra Gatito" style="width: 100%; max-width: 500px;" /><br><br>
+
+  <table id="tablaProyecto">
+    <thead>
+      <tr>
+        <th>Lana</th>
+        <th>Gramos usados</th>
+        <th>Costo (ARS)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoProyecto"></tbody>
+  </table>
+
+  <button onclick="agregarFilaProyecto()">+ Agregar Lana al proyecto</button><br><br>
+
+  <label>Porcentaje de ganancia deseada:</label><br>
+  <input type="number" id="porcGanancia" value="60" min="0" step="5" style="width: 120px;" /> %<br><br>
+
+  <div class="total-box">
+    <div>Gasto total en lanas: <span id="totalGasto">0.00</span> ARS</div>
+    <div>Precio a cobrar al cliente: <span id="precioFinal">0.00</span> ARS</div>
+    <div>Ganancia estimada: <span id="gananciaPura">0.00</span> ARS</div>
+  </div>
 </div>
 
 <script>
-  // Todas las funciones definidas ANTES de cualquier onclick
-  let catalogo = {};
+let catalogo = {};
 
-  // Intentar cargar de localStorage
+try {
+  const guardado = localStorage.getItem('tuftingCatalogo');
+  if (guardado) catalogo = JSON.parse(guardado);
+} catch (e) {
+  console.error("Error cargando localStorage:", e);
+}
+
+function guardarCatalogo() {
   try {
-    const guardado = localStorage.getItem('tuftingCatalogo');
-    if (guardado) catalogo = JSON.parse(guardado);
-  } catch (e) {
-    console.error("localStorage no disponible:", e);
-    document.getElementById('mensajeError').textContent = "No se puede guardar permanentemente (problema con almacenamiento del navegador)";
+    localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
+  } catch (e) {}
+  renderCatalogo();
+  actualizarSelectsProyecto();
+}
+
+function agregarLana() {
+  const nombre = document.getElementById('nuevaLana').value.trim();
+  const precio = parseFloat(document.getElementById('precioGramo').value);
+
+  if (!nombre || isNaN(precio) || precio <= 0) {
+    alert('Completá nombre y precio válido (>0)');
+    return;
   }
 
-  function guardarCatalogo() {
-    try {
-      localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
-    } catch (e) {
-      console.error("Error guardando:", e);
-    }
-    renderCatalogo();
-  }
+  catalogo[nombre] = precio;
+  guardarCatalogo();
 
-  function agregarLana() {
-    const nombre = document.getElementById('nuevaLana').value.trim();
-    const precio = parseFloat(document.getElementById('precioGramo').value);
+  document.getElementById('nuevaLana').value = '';
+  document.getElementById('precioGramo').value = '';
+}
 
-    if (!nombre || isNaN(precio) || precio <= 0) {
-      alert('Completá nombre y precio válido (>0)');
-      return;
-    }
-
-    catalogo[nombre] = precio;
+function borrarLana(nombre) {
+  if (confirm(`¿Borrar ${nombre}?`)) {
+    delete catalogo[nombre];
     guardarCatalogo();
-
-    document.getElementById('nuevaLana').value = '';
-    document.getElementById('precioGramo').value = '';
   }
+}
 
-  function borrarLana(nombre) {
-    if (confirm(`¿Borrar ${nombre}?`)) {
-      delete catalogo[nombre];
-      guardarCatalogo();
-    }
-  }
+function renderCatalogo() {
+  const tbody = document.getElementById('cuerpoCatalogo');
+  tbody.innerHTML = '';
+  Object.entries(catalogo).forEach(([nombre, precio]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${nombre}</td>
+      <td>$${precio.toFixed(2)}</td>
+      <td><button class="delete-btn" onclick="borrarLana('${nombre.replace(/'/g, "\\'")}')">Borrar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-  function renderCatalogo() {
-    const tbody = document.getElementById('cuerpoCatalogo');
-    tbody.innerHTML = '';
-    Object.entries(catalogo).forEach(([nombre, precio]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${nombre}</td>
-        <td>$${precio.toFixed(2)}</td>
-        <td><button class="delete-btn" onclick="borrarLana('${nombre.replace(/'/g, "\\'")}')">Borrar</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function resetearTodo() {
-    if (confirm('¿Borrar TODAS las lanas guardadas?')) {
-      catalogo = {};
-      try { localStorage.removeItem('tuftingCatalogo'); } catch(e) {}
-      renderCatalogo();
-      location.reload();
-    }
-  }
-
-  // Inicializar al cargar la página
-  window.onload = function() {
+function resetearTodo() {
+  if (confirm('¿Borrar TODAS las lanas del catálogo?')) {
+    catalogo = {};
+    try { localStorage.removeItem('tuftingCatalogo'); } catch(e) {}
     renderCatalogo();
-  };
+    actualizarSelectsProyecto();
+    location.reload();
+  }
+}
+
+// ────────────────────────────────────────────────
+// Lógica del Proyecto
+// ────────────────────────────────────────────────
+
+let filaId = 0;
+
+function actualizarSelectsProyecto() {
+  const opciones = '<option value="">-- Elegir lana --</option>' +
+    Object.entries(catalogo).map(([nombre, precio]) => 
+      `<option value="${nombre}">${nombre} ($${precio.toFixed(2)}/g)</option>`
+    ).join('');
+
+  document.querySelectorAll('.lana-select').forEach(select => {
+    const valorAnterior = select.value;
+    select.innerHTML = opciones;
+    if (valorAnterior && catalogo[valorAnterior]) select.value = valorAnterior;
+  });
+}
+
+function agregarFilaProyecto() {
+  filaId++;
+  const tbody = document.getElementById('cuerpoProyecto');
+  const tr = document.createElement('tr');
+  tr.id = `fila-proyecto-${filaId}`;
+  tr.innerHTML = `
+    <td>
+      <select class="lana-select" onchange="calcularTodo()">
+        <option value="">-- Elegir lana --</option>
+        ${Object.entries(catalogo).map(([n, p]) => `<option value="${n}">${n} ($${p.toFixed(2)}/g)</option>`).join('')}
+      </select>
+    </td>
+    <td><input type="number" min="0" step="1" value="0" onchange="calcularTodo()" style="width:120px;"></td>
+    <td class="costo-fila">0.00</td>
+    <td><button class="delete-btn" onclick="this.parentElement.parentElement.remove(); calcularTodo();">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  calcularTodo();
+}
+
+function calcularTodo() {
+  let total = 0;
+
+  document.querySelectorAll('#cuerpoProyecto tr').forEach(tr => {
+    const select = tr.querySelector('select');
+    const gramosInput = tr.querySelector('input[type="number"]');
+    const celdaCosto = tr.querySelector('.costo-fila');
+
+    if (!select || !gramosInput || !celdaCosto) return;
+
+    const lana = select.value;
+    const gramos = parseFloat(gramosInput.value) || 0;
+
+    if (lana && catalogo[lana]) {
+      const costo = gramos * catalogo[lana];
+      celdaCosto.textContent = costo.toFixed(2);
+      total += costo;
+    } else {
+      celdaCosto.textContent = '0.00';
+    }
+  });
+
+  const porc = parseFloat(document.getElementById('porcGanancia').value) || 0;
+  const precioFinal = total * (1 + porc / 100);
+  const ganancia = precioFinal - total;
+
+  document.getElementById('totalGasto').textContent = total.toFixed(2);
+  document.getElementById('precioFinal').textContent = precioFinal.toFixed(2);
+  document.getElementById('gananciaPura').textContent = ganancia.toFixed(2);
+}
+
+// Inicialización
+renderCatalogo();
+document.getElementById('porcGanancia').addEventListener('input', calcularTodo);
+agregarFilaProyecto(); // fila inicial
+agregarFilaProyecto(); // dos filas por defecto para comodidad
 </script>
 
 </body>
