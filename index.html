@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Olive Admin - Tufting</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 1000px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
@@ -12,84 +12,67 @@
     .section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.12); margin-bottom: 35px; }
     table { width: 100%; border-collapse: collapse; margin: 20px 0; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background: #e8f5e9; font-weight: bold; }
+    th { background: #e8f5e9; }
     input, select, button { padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
-    button { background: #4caf50; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button { background: #4caf50; color: white; border: none; cursor: pointer; }
     button:hover { background: #43a047; }
     .delete-btn { background: #f44336; }
     .delete-btn:hover { background: #d32f2f; }
     .total-box { font-size: 1.8em; font-weight: bold; margin: 30px 0; padding: 25px; background: #e8f5e9; border-radius: 12px; text-align: center; border: 2px solid #81c784; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .project-list { margin-top: 20px; }
-    .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; cursor: pointer; }
     .project-item:hover { background: #dcedc8; }
     .number { font-variant-numeric: tabular-nums; }
-    #debugMsg { color: #d32f2f; font-weight: bold; margin: 10px 0; padding: 10px; background: #ffebee; border-radius: 6px; display: none; }
   </style>
 </head>
 <body>
 
 <h1><span class="logo">🫒</span> Olive Admin</h1>
 
-<div id="debugMsg"></div>
-
 <div class="section">
   <h2>1. Administrar Lanas</h2>
-  <!-- ... (mismo código de catálogo que antes, sin cambios) ... -->
-  <div class="grid">
-    <div>
-      <input type="text" id="nuevaLana" placeholder="Nombre (ej: Chenille Rosa)" />
-      <input type="number" id="precioGramo" placeholder="Precio por gramo (ARS)" step="1" min="0" />
-      <button onclick="agregarLana()">+ Agregar / Actualizar</button>
-    </div>
-    <div>
-      <button onclick="resetearCatalogo()" class="delete-btn">Limpiar Catálogo</button>
-    </div>
-  </div>
+  <input type="text" id="nuevaLana" placeholder="Nombre lana">
+  <input type="number" id="precioGramo" placeholder="Precio por gramo (ARS)" step="1" min="0">
+  <button onclick="agregarLana()">+ Agregar</button>
+  <button onclick="resetearCatalogo()" class="delete-btn" style="margin-left:10px;">Limpiar Catálogo</button>
 
-  <table id="tablaCatalogo">
-    <thead><tr><th>Lana</th><th>Precio por gramo</th><th>Acción</th></tr></thead>
+  <table id="tablaCatalogo" style="margin-top:20px;">
+    <thead><tr><th>Lana</th><th>Precio</th><th></th></tr></thead>
     <tbody id="cuerpoCatalogo"></tbody>
   </table>
 </div>
 
 <div class="section">
-  <h2>2. Proyectos</h2>
+  <h2>2. Proyecto Actual</h2>
+  <button onclick="nuevoProyecto()">Nuevo Proyecto</button>
+  <button onclick="guardarProyectoActual()" style="margin-left:15px;">Guardar</button><br><br>
 
-  <div style="margin-bottom:20px;">
-    <button onclick="nuevoProyecto()">Nuevo Proyecto</button>
-    <button onclick="guardarProyectoActual()" style="margin-left:15px;">Guardar Proyecto Actual</button>
-  </div>
-
-  <label>Nombre del proyecto:</label><br>
-  <input type="text" id="nombreProyecto" placeholder="Ej: Alfombra Gatito" style="width:100%; max-width:500px;" /><br><br>
+  <input type="text" id="nombreProyecto" placeholder="Nombre del proyecto" style="width:100%; max-width:400px;"><br><br>
 
   <table id="tablaProyecto">
-    <thead><tr><th>Lana</th><th>Gramos usados</th><th>Costo (ARS)</th><th></th></tr></thead>
+    <thead><tr><th>Lana</th><th>Gramos</th><th>Costo</th><th></th></tr></thead>
     <tbody id="cuerpoProyecto"></tbody>
   </table>
 
-  <button onclick="agregarFilaProyecto()">+ Agregar Lana</button><br><br>
+  <button onclick="agregarFilaProyecto()" style="margin:15px 0;">+ Agregar Lana</button><br>
 
-  <label>Porcentaje de ganancia:</label><br>
-  <input type="number" id="porcGanancia" value="60" min="0" step="5" style="width:120px;" /> %<br><br>
+  Ganancia %: <input type="number" id="porcGanancia" value="60" min="0" step="5" style="width:80px;"> %<br><br>
 
   <div class="total-box">
-    <div>Gasto total: <span id="totalGasto" class="number">0</span> ARS</div>
-    <div>Precio a cobrar: <span id="precioFinal" class="number">0</span> ARS</div>
-    <div>Ganancia: <span id="gananciaPura" class="number">0</span> ARS</div>
+    Total lanas: <span id="totalGasto" class="number">0</span> ARS<br>
+    Precio cliente: <span id="precioFinal" class="number">0</span> ARS<br>
+    Ganancia: <span id="gananciaPura" class="number">0</span> ARS
   </div>
 </div>
 
 <div class="section">
   <h2>Proyectos Guardados</h2>
-  <div id="listaProyectos" class="project-list"></div>
+  <div id="listaProyectos"></div>
 </div>
 
 <script>
-// Formato ARS sin centavos
-function formatARS(num) {
-  return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+// Todas las funciones se definen ANTES de usarlas
+function formatARS(n) {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 let catalogo = {};
@@ -97,169 +80,177 @@ let proyectos = [];
 let filaId = 0;
 
 try {
-  const cat = localStorage.getItem('tuftingCatalogo');
-  if (cat) catalogo = JSON.parse(cat);
-  const proy = localStorage.getItem('tuftingProyectos');
-  if (proy) proyectos = JSON.parse(proy);
+  catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
+  proyectos = JSON.parse(localStorage.getItem('tuftingProyectos') || '[]');
 } catch (e) {
-  console.error("Error cargando storage:", e);
-  document.getElementById('debugMsg').textContent = "Error al cargar datos guardados. Intentá limpiar caché del navegador.";
-  document.getElementById('debugMsg').style.display = 'block';
+  console.error("Error al cargar storage", e);
 }
 
-// ... (funciones de catálogo: guardarCatalogo, agregarLana, borrarLana, renderCatalogo, resetearCatalogo – igual que antes) ...
+function guardarCatalogo() {
+  localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
+  renderCatalogo();
+  actualizarSelects();
+}
 
-// Proyectos
+function agregarLana() {
+  const nombre = document.getElementById('nuevaLana').value.trim();
+  const precio = Math.round(parseFloat(document.getElementById('precioGramo').value) || 0);
+  if (!nombre || precio <= 0) return alert('Datos inválidos');
+  catalogo[nombre] = precio;
+  guardarCatalogo();
+  document.getElementById('nuevaLana').value = '';
+  document.getElementById('precioGramo').value = '';
+}
+
+function borrarLana(nombre) {
+  if (!confirm(`Borrar ${nombre}?`)) return;
+  delete catalogo[nombre];
+  guardarCatalogo();
+}
+
+function renderCatalogo() {
+  const tbody = document.getElementById('cuerpoCatalogo');
+  tbody.innerHTML = '';
+  Object.entries(catalogo).forEach(([n, p]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${n}</td><td class="number">$${formatARS(p)}</td><td><button class="delete-btn" onclick="borrarLana('${n.replace(/'/g,"\\'")}')">×</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function resetearCatalogo() {
+  if (!confirm('Borrar todo el catálogo?')) return;
+  catalogo = {};
+  localStorage.removeItem('tuftingCatalogo');
+  renderCatalogo();
+  actualizarSelects();
+}
+
+// Proyecto
 function nuevoProyecto() {
-  if (!confirm('¿Nuevo proyecto? (pierde cambios no guardados)')) return;
+  if (!confirm('¿Nuevo? Pierde cambios no guardados')) return;
   document.getElementById('nombreProyecto').value = '';
   document.getElementById('porcGanancia').value = 60;
   document.getElementById('cuerpoProyecto').innerHTML = '';
   filaId = 0;
-  agregarFilaProyecto();
   agregarFilaProyecto();
   calcularTodo();
 }
 
 function guardarProyectoActual() {
   const nombre = document.getElementById('nombreProyecto').value.trim();
-  if (!nombre) return alert('Poné nombre al proyecto');
+  if (!nombre) return alert('Falta nombre');
 
-  const lineas = Array.from(document.querySelectorAll('#cuerpoProyecto tr')).map(tr => {
-    const sel = tr.querySelector('select');
-    const inp = tr.querySelector('input');
-    return sel?.value && inp?.value > 0 ? {lana: sel.value, gramos: parseFloat(inp.value)} : null;
-  }).filter(Boolean);
+  const lineas = [];
+  document.querySelectorAll('#cuerpoProyecto tr').forEach(tr => {
+    const s = tr.querySelector('select');
+    const i = tr.querySelector('input');
+    if (s.value) lineas.push({lana: s.value, gramos: parseFloat(i.value || 0)});
+  });
 
   const porc = parseInt(document.getElementById('porcGanancia').value) || 0;
 
   const idx = proyectos.findIndex(p => p.nombre === nombre);
-  if (idx >= 0) {
-    if (!confirm('Sobrescribir proyecto existente?')) return;
-    proyectos[idx] = {nombre, lineas, porcGanancia: porc};
-  } else {
-    proyectos.push({nombre, lineas, porcGanancia: porc});
-  }
+  if (idx >= 0 && !confirm('Sobrescribir?')) return;
+  if (idx >= 0) proyectos[idx] = {nombre, lineas, porcGanancia: porc};
+  else proyectos.push({nombre, lineas, porcGanancia: porc});
 
   localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
   renderListaProyectos();
-  alert('Guardado OK');
 }
 
 function cargarProyecto(nombre) {
-  const proj = proyectos.find(p => p.nombre === nombre);
-  if (!proj) return alert('No se encontró el proyecto');
+  const p = proyectos.find(pr => pr.nombre === nombre);
+  if (!p) return alert('No encontrado');
 
-  document.getElementById('nombreProyecto').value = proj.nombre;
-  document.getElementById('porcGanancia').value = proj.porcGanancia || 60;
+  document.getElementById('nombreProyecto').value = p.nombre;
+  document.getElementById('porcGanancia').value = p.porcGanancia || 60;
 
-  // Limpiar tabla y recrear filas
   const tbody = document.getElementById('cuerpoProyecto');
   tbody.innerHTML = '';
   filaId = 0;
 
-  // Actualizar selects ANTES de setear valores
-  actualizarSelectsProyecto();
+  actualizarSelects(); // actualiza opciones primero
 
-  proj.lineas.forEach(({lana, gramos}) => {
-    agregarFilaProyecto(); // crea fila con select actualizado
-    const filaNueva = tbody.lastElementChild;
-    const select = filaNueva.querySelector('select');
-    const input = filaNueva.querySelector('input');
-
-    if (select && catalogo[lana]) {
-      select.value = lana;
-      input.value = gramos;
-    } else {
-      console.warn(`Lana "${lana}" no existe en catálogo actual`);
-    }
+  p.lineas.forEach(l => {
+    agregarFilaProyecto();
+    const fila = tbody.lastChild;
+    const sel = fila.querySelector('select');
+    const inp = fila.querySelector('input');
+    sel.value = l.lana;
+    inp.value = l.gramos;
   });
 
   calcularTodo();
-  console.log("Proyecto cargado:", proj);
-}
-
-function borrarProyecto(nombre) {
-  if (confirm(`Borrar "${nombre}"?`)) {
-    proyectos = proyectos.filter(p => p.nombre !== nombre);
-    localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
-    renderListaProyectos();
-  }
 }
 
 function renderListaProyectos() {
-  const cont = document.getElementById('listaProyectos');
-  cont.innerHTML = '';
-  if (proyectos.length === 0) {
-    cont.innerHTML = '<p style="color:#777;">No hay proyectos guardados aún.</p>';
-    return;
-  }
+  const div = document.getElementById('listaProyectos');
+  div.innerHTML = '';
   proyectos.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'project-item';
-    div.innerHTML = `
-      <span onclick="cargarProyecto('${p.nombre.replace(/'/g,"\\'")}')">${p.nombre}</span>
-      <button class="delete-btn" onclick="event.stopPropagation(); borrarProyecto('${p.nombre.replace(/'/g,"\\'")}')">Borrar</button>
-    `;
-    cont.appendChild(div);
+    const item = document.createElement('div');
+    item.className = 'project-item';
+    item.innerHTML = `<span onclick="cargarProyecto('${p.nombre.replace(/'/g,"\\'")}')">${p.nombre}</span>
+                      <button class="delete-btn" onclick="borrarProyecto('${p.nombre.replace(/'/g,"\\'")}')">Borrar</button>`;
+    div.appendChild(item);
   });
 }
 
-// Tabla proyecto (igual, pero con formato)
-function actualizarSelectsProyecto() {
-  const opts = '<option value="">-- Elegir --</option>' + 
-    Object.entries(catalogo).map(([n,p]) => `<option value="${n}">${n} ($${formatARS(p)}/g)</option>`).join('');
+function borrarProyecto(nombre) {
+  if (!confirm(`Borrar ${nombre}?`)) return;
+  proyectos = proyectos.filter(p => p.nombre !== nombre);
+  localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
+  renderListaProyectos();
+}
+
+// Tabla filas
+function actualizarSelects() {
+  const html = Object.entries(catalogo).map(([n,p]) => `<option value="${n}">${n} ($${formatARS(p)})</option>`).join('');
   document.querySelectorAll('.lana-select').forEach(s => {
-    const val = s.value;
-    s.innerHTML = opts;
-    if (val && catalogo[val]) s.value = val;
+    const v = s.value;
+    s.innerHTML = '<option value="">--</option>' + html;
+    if (v) s.value = v;
   });
 }
 
 function agregarFilaProyecto() {
   filaId++;
-  const tbody = document.getElementById('cuerpoProyecto');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><select class="lana-select" onchange="calcularTodo()">${Object.entries(catalogo).map(([n,p])=>`<option value="${n}">${n} ($${formatARS(p)}/g)</option>`).join('')}</select></td>
-    <td><input type="number" min="0" step="1" value="0" onchange="calcularTodo()" style="width:120px;"></td>
-    <td class="costo number">0</td>
-    <td><button class="delete-btn" onclick="this.parentElement.parentElement.remove(); calcularTodo();">×</button></td>
+    <td><select class="lana-select" onchange="calcularTodo()"></select></td>
+    <td><input type="number" min="0" value="0" onchange="calcularTodo()" style="width:100px;"></td>
+    <td class="number">0</td>
+    <td><button class="delete-btn" onclick="this.closest('tr').remove(); calcularTodo();">×</button></td>
   `;
-  tbody.appendChild(tr);
+  document.getElementById('cuerpoProyecto').appendChild(tr);
+  actualizarSelects();
   calcularTodo();
 }
 
 function calcularTodo() {
-  let total = 0;
+  let tot = 0;
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr => {
-    const sel = tr.querySelector('select');
-    const inp = tr.querySelector('input');
-    const celda = tr.querySelector('.costo');
-    if (!sel || !inp || !celda) return;
-    const gramos = parseFloat(inp.value) || 0;
-    const precioG = catalogo[sel.value] || 0;
-    const costo = Math.round(gramos * precioG);
-    celda.textContent = formatARS(costo);
-    total += costo;
+    const s = tr.querySelector('select');
+    const i = tr.querySelector('input');
+    const c = tr.cells[2];
+    const g = parseFloat(i.value) || 0;
+    const precio = catalogo[s.value] || 0;
+    const costo = Math.round(g * precio);
+    c.textContent = formatARS(costo);
+    tot += costo;
   });
-
   const porc = parseInt(document.getElementById('porcGanancia').value) || 0;
-  const final = Math.round(total * (1 + porc / 100));
-  const ganancia = final - total;
-
-  document.getElementById('totalGasto').textContent = formatARS(total);
+  const final = Math.round(tot * (1 + porc / 100));
+  document.getElementById('totalGasto').textContent = formatARS(tot);
   document.getElementById('precioFinal').textContent = formatARS(final);
-  document.getElementById('gananciaPura').textContent = formatARS(ganancia);
+  document.getElementById('gananciaPura').textContent = formatARS(final - tot);
 }
 
-// Init
+// Inicio
 renderCatalogo();
 renderListaProyectos();
 agregarFilaProyecto();
-agregarFilaProyecto();
-document.getElementById('porcGanancia').addEventListener('input', calcularTodo);
+calcularTodo();
 </script>
-
 </body>
 </html>
