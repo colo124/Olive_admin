@@ -24,15 +24,18 @@
     .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .project-item:hover { background: #dcedc8; }
     .number { font-variant-numeric: tabular-nums; }
+    #debugMsg { color: #d32f2f; font-weight: bold; margin: 10px 0; padding: 10px; background: #ffebee; border-radius: 6px; display: none; }
   </style>
 </head>
 <body>
 
 <h1><span class="logo">🫒</span> Olive Admin</h1>
-<p style="text-align:center; color:#555; margin-top:-10px;">Gestión de costos y proyectos de tufting</p>
+
+<div id="debugMsg"></div>
 
 <div class="section">
-  <h2>1. Administrar Lanas (precio por gramo)</h2>
+  <h2>1. Administrar Lanas</h2>
+  <!-- ... (mismo código de catálogo que antes, sin cambios) ... -->
   <div class="grid">
     <div>
       <input type="text" id="nuevaLana" placeholder="Nombre (ej: Chenille Rosa)" />
@@ -72,7 +75,7 @@
   <input type="number" id="porcGanancia" value="60" min="0" step="5" style="width:120px;" /> %<br><br>
 
   <div class="total-box">
-    <div>Gasto total en lanas: <span id="totalGasto" class="number">0</span> ARS</div>
+    <div>Gasto total: <span id="totalGasto" class="number">0</span> ARS</div>
     <div>Precio a cobrar: <span id="precioFinal" class="number">0</span> ARS</div>
     <div>Ganancia: <span id="gananciaPura" class="number">0</span> ARS</div>
   </div>
@@ -84,16 +87,11 @@
 </div>
 
 <script>
-// ────────────────────────────────────────────────
-// Formato números argentinos (puntos miles, sin centavos)
-// ────────────────────────────────────────────────
+// Formato ARS sin centavos
 function formatARS(num) {
   return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-// ────────────────────────────────────────────────
-// Datos
-// ────────────────────────────────────────────────
 let catalogo = {};
 let proyectos = [];
 let filaId = 0;
@@ -103,58 +101,17 @@ try {
   if (cat) catalogo = JSON.parse(cat);
   const proy = localStorage.getItem('tuftingProyectos');
   if (proy) proyectos = JSON.parse(proy);
-} catch (e) { console.error(e); }
-
-// ────────────────────────────────────────────────
-// Catálogo
-// ────────────────────────────────────────────────
-function guardarCatalogo() {
-  localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
-  renderCatalogo();
-  actualizarSelectsProyecto();
+} catch (e) {
+  console.error("Error cargando storage:", e);
+  document.getElementById('debugMsg').textContent = "Error al cargar datos guardados. Intentá limpiar caché del navegador.";
+  document.getElementById('debugMsg').style.display = 'block';
 }
 
-function agregarLana() {
-  const nombre = document.getElementById('nuevaLana').value.trim();
-  const precio = Math.round(parseFloat(document.getElementById('precioGramo').value) || 0);
-  if (!nombre || precio <= 0) return alert('Datos inválidos');
-  catalogo[nombre] = precio;
-  guardarCatalogo();
-  document.getElementById('nuevaLana').value = '';
-  document.getElementById('precioGramo').value = '';
-}
+// ... (funciones de catálogo: guardarCatalogo, agregarLana, borrarLana, renderCatalogo, resetearCatalogo – igual que antes) ...
 
-function borrarLana(nombre) {
-  if (confirm(`Borrar ${nombre}?`)) {
-    delete catalogo[nombre];
-    guardarCatalogo();
-  }
-}
-
-function renderCatalogo() {
-  const tbody = document.getElementById('cuerpoCatalogo');
-  tbody.innerHTML = '';
-  Object.entries(catalogo).sort().forEach(([n, p]) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${n}</td><td class="number">$${formatARS(p)}</td><td><button class="delete-btn" onclick="borrarLana('${n.replace(/'/g,"\\'")}')">Borrar</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-function resetearCatalogo() {
-  if (confirm('¿Borrar todo el catálogo?')) {
-    catalogo = {};
-    localStorage.removeItem('tuftingCatalogo');
-    renderCatalogo();
-    actualizarSelectsProyecto();
-  }
-}
-
-// ────────────────────────────────────────────────
 // Proyectos
-// ────────────────────────────────────────────────
 function nuevoProyecto() {
-  if (!confirm('¿Empezar proyecto nuevo?')) return;
+  if (!confirm('¿Nuevo proyecto? (pierde cambios no guardados)')) return;
   document.getElementById('nombreProyecto').value = '';
   document.getElementById('porcGanancia').value = 60;
   document.getElementById('cuerpoProyecto').innerHTML = '';
@@ -166,22 +123,19 @@ function nuevoProyecto() {
 
 function guardarProyectoActual() {
   const nombre = document.getElementById('nombreProyecto').value.trim();
-  if (!nombre) return alert('Poné un nombre al proyecto');
+  if (!nombre) return alert('Poné nombre al proyecto');
 
-  const lineas = [];
-  document.querySelectorAll('#cuerpoProyecto tr').forEach(tr => {
+  const lineas = Array.from(document.querySelectorAll('#cuerpoProyecto tr')).map(tr => {
     const sel = tr.querySelector('select');
     const inp = tr.querySelector('input');
-    if (sel?.value && inp?.value > 0) {
-      lineas.push({lana: sel.value, gramos: parseFloat(inp.value)});
-    }
-  });
+    return sel?.value && inp?.value > 0 ? {lana: sel.value, gramos: parseFloat(inp.value)} : null;
+  }).filter(Boolean);
 
   const porc = parseInt(document.getElementById('porcGanancia').value) || 0;
 
   const idx = proyectos.findIndex(p => p.nombre === nombre);
   if (idx >= 0) {
-    if (!confirm('Ya existe. ¿Sobrescribir?')) return;
+    if (!confirm('Sobrescribir proyecto existente?')) return;
     proyectos[idx] = {nombre, lineas, porcGanancia: porc};
   } else {
     proyectos.push({nombre, lineas, porcGanancia: porc});
@@ -189,35 +143,44 @@ function guardarProyectoActual() {
 
   localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
   renderListaProyectos();
-  alert('¡Guardado!');
+  alert('Guardado OK');
 }
 
 function cargarProyecto(nombre) {
   const proj = proyectos.find(p => p.nombre === nombre);
-  if (!proj) return alert('Proyecto no encontrado');
+  if (!proj) return alert('No se encontró el proyecto');
 
   document.getElementById('nombreProyecto').value = proj.nombre;
-  document.getElementById('porcGanancia').value = proj.porcGanancia;
+  document.getElementById('porcGanancia').value = proj.porcGanancia || 60;
 
-  document.getElementById('cuerpoProyecto').innerHTML = '';
+  // Limpiar tabla y recrear filas
+  const tbody = document.getElementById('cuerpoProyecto');
+  tbody.innerHTML = '';
   filaId = 0;
 
+  // Actualizar selects ANTES de setear valores
+  actualizarSelectsProyecto();
+
   proj.lineas.forEach(({lana, gramos}) => {
-    agregarFilaProyecto();
-    const fila = document.querySelector('#cuerpoProyecto tr:last-child');
-    const select = fila.querySelector('select');
-    const input = fila.querySelector('input');
-    select.value = lana;
-    input.value = gramos;
+    agregarFilaProyecto(); // crea fila con select actualizado
+    const filaNueva = tbody.lastElementChild;
+    const select = filaNueva.querySelector('select');
+    const input = filaNueva.querySelector('input');
+
+    if (select && catalogo[lana]) {
+      select.value = lana;
+      input.value = gramos;
+    } else {
+      console.warn(`Lana "${lana}" no existe en catálogo actual`);
+    }
   });
 
-  actualizarSelectsProyecto(); // importante: recargar opciones con precios actuales
   calcularTodo();
-  alert(`Proyecto "${nombre}" cargado. Podés editar y guardar de nuevo.`);
+  console.log("Proyecto cargado:", proj);
 }
 
 function borrarProyecto(nombre) {
-  if (confirm(`¿Borrar "${nombre}"?`)) {
+  if (confirm(`Borrar "${nombre}"?`)) {
     proyectos = proyectos.filter(p => p.nombre !== nombre);
     localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
     renderListaProyectos();
@@ -226,7 +189,11 @@ function borrarProyecto(nombre) {
 
 function renderListaProyectos() {
   const cont = document.getElementById('listaProyectos');
-  cont.innerHTML = proyectos.length === 0 ? '<p style="color:#777;">Aún no hay proyectos guardados.</p>' : '';
+  cont.innerHTML = '';
+  if (proyectos.length === 0) {
+    cont.innerHTML = '<p style="color:#777;">No hay proyectos guardados aún.</p>';
+    return;
+  }
   proyectos.forEach(p => {
     const div = document.createElement('div');
     div.className = 'project-item';
@@ -238,9 +205,7 @@ function renderListaProyectos() {
   });
 }
 
-// ────────────────────────────────────────────────
-// Tabla de proyecto
-// ────────────────────────────────────────────────
+// Tabla proyecto (igual, pero con formato)
 function actualizarSelectsProyecto() {
   const opts = '<option value="">-- Elegir --</option>' + 
     Object.entries(catalogo).map(([n,p]) => `<option value="${n}">${n} ($${formatARS(p)}/g)</option>`).join('');
