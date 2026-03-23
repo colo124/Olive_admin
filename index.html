@@ -74,12 +74,15 @@
   <div id="listaProyectos"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 // ==================== SUPABASE ====================
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
+const SUPABASE_ANON_KEY = 'TU_KEY_AQUI';
 
-const db = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 🔥 FIX IMPORTANTE (minúscula)
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==================== DATA ====================
 let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
@@ -100,6 +103,7 @@ function agregarLana() {
   const nombre = document.getElementById('nuevaLana').value.trim();
   const precio = parseFloat(document.getElementById('precioGramo').value);
   if (!nombre || !precio) return alert('Datos inválidos');
+
   catalogo[nombre] = precio;
   guardarCatalogo();
 }
@@ -127,8 +131,8 @@ function resetearCatalogo() {
 function agregarFilaProyecto() {
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><select class="lana-select"></select></td>
-    <td><input type="number" value="0"></td>
+    <td><select class="lana-select" onchange="calcularTodo()"></select></td>
+    <td><input type="number" value="0" onchange="calcularTodo()"></td>
     <td class="costo">0</td>
     <td><button onclick="this.closest('tr').remove(); calcularTodo()">x</button></td>
   `;
@@ -138,18 +142,22 @@ function agregarFilaProyecto() {
 
 function actualizarSelectsProyecto() {
   document.querySelectorAll('.lana-select').forEach(s=>{
-    s.innerHTML = '<option></option>' + Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
+    s.innerHTML = '<option></option>' + 
+      Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
   });
 }
 
 function calcularTodo() {
   let total = 0;
+
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana = tr.querySelector('select').value;
     const gramos = parseFloat(tr.querySelector('input').value)||0;
     const precio = catalogo[lana]||0;
+
     const costo = gramos * precio;
     tr.querySelector('.costo').textContent = formatARS(costo);
+
     total += costo;
   });
 
@@ -167,6 +175,7 @@ async function guardarProyectoActual() {
   if (!nombre) return alert('Poné nombre');
 
   const lineas = [];
+
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     lineas.push({
       lana: tr.querySelector('select').value,
@@ -185,22 +194,31 @@ async function guardarProyectoActual() {
 
 async function cargarProyectos() {
   const {data} = await db.from('proyectos').select('*');
+
   const cont = document.getElementById('listaProyectos');
   cont.innerHTML='';
+
   data.forEach(p=>{
     cont.innerHTML += `<div onclick="cargarProyecto('${p.nombre}')">${p.nombre}</div>`;
   });
 }
 
 async function cargarProyecto(nombre) {
-  const {data} = await db.from('proyectos').select('*').eq('nombre',nombre).single();
+  const {data} = await db.from('proyectos')
+    .select('*')
+    .eq('nombre',nombre)
+    .single();
+
   document.getElementById('cuerpoProyecto').innerHTML='';
+
   JSON.parse(data.lineas).forEach(l=>{
     agregarFilaProyecto();
+
     const tr = document.querySelector('#cuerpoProyecto tr:last-child');
     tr.querySelector('select').value=l.lana;
     tr.querySelector('input').value=l.gramos;
   });
+
   calcularTodo();
 }
 
