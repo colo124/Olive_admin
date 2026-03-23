@@ -146,11 +146,14 @@ async function guardarProyectoActual() {
 
   const porc = parseInt(document.getElementById('porcGanancia').value) || 60;
 
-  const { error } = await supabase
-    .from('proyectos')
-    .upsert({ nombre, descripcion, lineas: JSON.stringify(lineas), porc_ganancia: porc }, { onConflict: 'nombre' });
+  const { error } = await supabase.from('proyectos').upsert({ 
+    nombre, 
+    descripcion, 
+    lineas: JSON.stringify(lineas), 
+    porc_ganancia: porc 
+  }, { onConflict: 'nombre' });
 
-  if (error) alert('Error al guardar: ' + error.message);
+  if (error) alert('Error: ' + error.message);
   else {
     alert('¡Guardado en Supabase!');
     cargarProyectosDesdeSupabase();
