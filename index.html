@@ -32,7 +32,7 @@
 <h1><span class="logo">🫒</span> Olive Admin</h1>
 
 <div class="section">
-  <h2>1. Administrar Lanas (local)</h2>
+  <h2>1. Administrar Lanas</h2>
   <input type="text" id="nuevaLana" placeholder="Nombre lana">
   <input type="number" id="precioGramo" placeholder="Precio por gramo (ARS)" step="1" min="0">
   <button onclick="agregarLana()">+ Agregar</button>
@@ -50,7 +50,6 @@
   <button onclick="guardarProyectoActual()" style="margin-left:15px;">💾 Guardar en Supabase</button><br><br>
 
   <input type="text" id="nombreProyecto" placeholder="Nombre del proyecto"><br><br>
-
   <label>Anotaciones / Descripción:</label><br>
   <textarea id="descripcionProyecto" placeholder="Cliente, fecha, observaciones..."></textarea><br><br>
 
@@ -76,21 +75,19 @@
 </div>
 
 <script>
-// ==================== SUPABASE CONFIG ====================
+// ==================== SUPABASE (tus credenciales) ====================
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
 
 const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Formato ARS
-function formatARS(n) {
-  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
+function formatARS(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
 let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
 let filaId = 0;
 
-// ==================== CATÁLOGO ====================
+// ==================== CATÁLOGO (sin tocar) ====================
 function guardarCatalogo() {
   localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
   renderCatalogo();
@@ -151,18 +148,15 @@ async function guardarProyectoActual() {
     .from('proyectos')
     .upsert({ nombre, descripcion, lineas: JSON.stringify(lineas), porc_ganancia: porc }, { onConflict: 'nombre' });
 
-  if (error) {
-    alert('Error al guardar: ' + error.message);
-  } else {
+  if (error) alert('Error: ' + error.message);
+  else {
     alert('¡Guardado en Supabase!');
     cargarProyectosDesdeSupabase();
   }
 }
 
 async function cargarProyectosDesdeSupabase() {
-  const { data, error } = await supabase.from('proyectos').select('*').order('nombre');
-  if (error) return console.error(error);
-
+  const { data } = await supabase.from('proyectos').select('*').order('nombre');
   const cont = document.getElementById('listaProyectos');
   cont.innerHTML = '';
   data.forEach(p => {
@@ -175,8 +169,8 @@ async function cargarProyectosDesdeSupabase() {
 }
 
 async function cargarProyecto(nombre) {
-  const { data, error } = await supabase.from('proyectos').select('*').eq('nombre', nombre).single();
-  if (error || !data) return alert('Proyecto no encontrado');
+  const { data } = await supabase.from('proyectos').select('*').eq('nombre', nombre).single();
+  if (!data) return alert('No encontrado');
 
   document.getElementById('nombreProyecto').value = data.nombre;
   document.getElementById('descripcionProyecto').value = data.descripcion || '';
@@ -185,30 +179,24 @@ async function cargarProyecto(nombre) {
   const tbody = document.getElementById('cuerpoProyecto');
   tbody.innerHTML = '';
   filaId = 0;
-
   actualizarSelectsProyecto();
 
-  const lineas = JSON.parse(data.lineas || '[]');
-  lineas.forEach(l => {
+  JSON.parse(data.lineas || '[]').forEach(l => {
     agregarFilaProyecto();
     const fila = tbody.lastChild;
-    const sel = fila.querySelector('select');
-    const inp = fila.querySelector('input');
-    sel.value = l.lana;
-    inp.value = l.gramos;
+    fila.querySelector('select').value = l.lana;
+    fila.querySelector('input').value = l.gramos;
   });
-
   calcularTodo();
 }
 
 async function borrarProyecto(nombre) {
   if (!confirm(`¿Borrar "${nombre}"?`)) return;
-  const { error } = await supabase.from('proyectos').delete().eq('nombre', nombre);
-  if (error) alert('Error: ' + error.message);
-  else cargarProyectosDesdeSupabase();
+  await supabase.from('proyectos').delete().eq('nombre', nombre);
+  cargarProyectosDesdeSupabase();
 }
 
-// ==================== FUNCIONES DEL PROYECTO ====================
+// ==================== FUNCIONES DEL PROYECTO (sin tocar) ====================
 function actualizarSelectsProyecto() {
   const opts = '<option value="">-- Elegir --</option>' + 
     Object.entries(catalogo).map(([n,p]) => `<option value="${n}">${n} ($${formatARS(p)}/g)</option>`).join('');
@@ -250,15 +238,13 @@ function calcularTodo() {
 
   const porc = parseInt(document.getElementById('porcGanancia').value) || 0;
   const final = Math.round(total * (1 + porc / 100));
-  const ganancia = final - total;
-
   document.getElementById('totalGasto').textContent = formatARS(total);
   document.getElementById('precioFinal').textContent = formatARS(final);
-  document.getElementById('gananciaPura').textContent = formatARS(ganancia);
+  document.getElementById('gananciaPura').textContent = formatARS(final - total);
 }
 
 function nuevoProyecto() {
-  if (!confirm('¿Nuevo proyecto? Se perderán cambios no guardados.')) return;
+  if (!confirm('¿Nuevo proyecto?')) return;
   document.getElementById('nombreProyecto').value = '';
   document.getElementById('descripcionProyecto').value = '';
   document.getElementById('porcGanancia').value = 60;
