@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Olive Admin - Tufting</title>
+  <!-- Favicon: aceituna simple (puedes reemplazar por tu propio .ico o PNG) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫒</text></svg>">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
+    body { font-family: Arial, sans-serif; max-width: 1100px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
     h1 { text-align: center; color: #2e7d32; margin-bottom: 10px; font-size: 2.8em; }
     .logo { font-size: 1.8em; margin-right: 10px; }
     h2 { color: #388e3c; }
@@ -13,13 +15,14 @@
     table { width: 100%; border-collapse: collapse; margin: 20px 0; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
     th { background: #e8f5e9; }
-    input, select, button { padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+    input, select, textarea, button { padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+    textarea { width: 100%; height: 120px; resize: vertical; }
     button { background: #4caf50; color: white; border: none; cursor: pointer; }
     button:hover { background: #43a047; }
     .delete-btn { background: #f44336; }
     .delete-btn:hover { background: #d32f2f; }
     .total-box { font-size: 1.8em; font-weight: bold; margin: 30px 0; padding: 25px; background: #e8f5e9; border-radius: 12px; text-align: center; border: 2px solid #81c784; }
-    .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; cursor: pointer; }
+    .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .project-item:hover { background: #dcedc8; }
     .number { font-variant-numeric: tabular-nums; }
   </style>
@@ -48,6 +51,9 @@
 
   <input type="text" id="nombreProyecto" placeholder="Nombre del proyecto" style="width:100%; max-width:400px;"><br><br>
 
+  <label>Anotaciones / Descripción:</label><br>
+  <textarea id="descripcionProyecto" placeholder="Cliente, fecha entrega, observaciones, problemas con la lana, etc..."></textarea><br><br>
+
   <table id="tablaProyecto">
     <thead><tr><th>Lana</th><th>Gramos</th><th>Costo</th><th></th></tr></thead>
     <tbody id="cuerpoProyecto"></tbody>
@@ -70,7 +76,7 @@
 </div>
 
 <script>
-// Todas las funciones se definen ANTES de usarlas
+// Formato ARS sin centavos
 function formatARS(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
@@ -130,6 +136,7 @@ function resetearCatalogo() {
 function nuevoProyecto() {
   if (!confirm('¿Nuevo? Pierde cambios no guardados')) return;
   document.getElementById('nombreProyecto').value = '';
+  document.getElementById('descripcionProyecto').value = '';
   document.getElementById('porcGanancia').value = 60;
   document.getElementById('cuerpoProyecto').innerHTML = '';
   filaId = 0;
@@ -140,6 +147,8 @@ function nuevoProyecto() {
 function guardarProyectoActual() {
   const nombre = document.getElementById('nombreProyecto').value.trim();
   if (!nombre) return alert('Falta nombre');
+
+  const descripcion = document.getElementById('descripcionProyecto').value.trim();
 
   const lineas = [];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr => {
@@ -152,8 +161,8 @@ function guardarProyectoActual() {
 
   const idx = proyectos.findIndex(p => p.nombre === nombre);
   if (idx >= 0 && !confirm('Sobrescribir?')) return;
-  if (idx >= 0) proyectos[idx] = {nombre, lineas, porcGanancia: porc};
-  else proyectos.push({nombre, lineas, porcGanancia: porc});
+  if (idx >= 0) proyectos[idx] = {nombre, descripcion, lineas, porcGanancia: porc};
+  else proyectos.push({nombre, descripcion, lineas, porcGanancia: porc});
 
   localStorage.setItem('tuftingProyectos', JSON.stringify(proyectos));
   renderListaProyectos();
@@ -164,13 +173,14 @@ function cargarProyecto(nombre) {
   if (!p) return alert('No encontrado');
 
   document.getElementById('nombreProyecto').value = p.nombre;
+  document.getElementById('descripcionProyecto').value = p.descripcion || '';
   document.getElementById('porcGanancia').value = p.porcGanancia || 60;
 
   const tbody = document.getElementById('cuerpoProyecto');
   tbody.innerHTML = '';
   filaId = 0;
 
-  actualizarSelects(); // actualiza opciones primero
+  actualizarSelects();
 
   p.lineas.forEach(l => {
     agregarFilaProyecto();
