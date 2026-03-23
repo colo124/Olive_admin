@@ -75,19 +75,21 @@
 </div>
 
 <script>
-// ==================== SUPABASE (tus credenciales) ====================
+// ==================== SUPABASE ====================
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
 
 const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Formato ARS
-function formatARS(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+function formatARS(n) {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
 let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
 let filaId = 0;
 
-// ==================== CATÁLOGO (sin tocar) ====================
+// ==================== CATÁLOGO ====================
 function guardarCatalogo() {
   localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
   renderCatalogo();
@@ -148,7 +150,7 @@ async function guardarProyectoActual() {
     .from('proyectos')
     .upsert({ nombre, descripcion, lineas: JSON.stringify(lineas), porc_ganancia: porc }, { onConflict: 'nombre' });
 
-  if (error) alert('Error: ' + error.message);
+  if (error) alert('Error al guardar: ' + error.message);
   else {
     alert('¡Guardado en Supabase!');
     cargarProyectosDesdeSupabase();
@@ -196,7 +198,7 @@ async function borrarProyecto(nombre) {
   cargarProyectosDesdeSupabase();
 }
 
-// ==================== FUNCIONES DEL PROYECTO (sin tocar) ====================
+// ==================== FUNCIONES DEL PROYECTO ====================
 function actualizarSelectsProyecto() {
   const opts = '<option value="">-- Elegir --</option>' + 
     Object.entries(catalogo).map(([n,p]) => `<option value="${n}">${n} ($${formatARS(p)}/g)</option>`).join('');
