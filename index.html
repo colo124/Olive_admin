@@ -161,14 +161,17 @@ async function agregarLana(){
   nuevaLana.value='';
   precioGramo.value='';
 
-  cargarLanas();
+  await cargarLanas();
+  await cargarProyectos(); // recalcula bien
 }
 
 async function borrarLana(nombre){
   if(!confirm("Borrar lana?")) return;
 
   await db.from('lanas').delete().eq('nombre', nombre);
-  cargarLanas();
+
+  await cargarLanas();
+  await cargarProyectos();
 }
 
 // ===== PROYECTO =====
@@ -193,12 +196,15 @@ function actualizarSelects(){
 
 function calcularTodo(){
   let total=0;
+
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana=tr.querySelector('select').value;
     const g=parseFloat(tr.querySelector('input').value)||0;
     const precio=catalogo[lana]||0;
+
     const c=g*precio;
     tr.querySelector('.costo').textContent=format(c);
+
     total+=c;
   });
 
@@ -266,11 +272,40 @@ async function cargarProyectos(){
   });
 }
 
-// ===== INIT ORDEN CORRECTO =====
+async function cargarProyecto(nombre){
+  const {data,error} = await db.from('proyectos').select('*').eq('nombre',nombre).single();
+
+  if(error){
+    console.log(error);
+    alert("Error cargando proyecto");
+    return;
+  }
+
+  nombreProyecto.value = data.nombre;
+  cuerpoProyecto.innerHTML='';
+
+  JSON.parse(data.lineas || '[]').forEach(l=>{
+    agregarFilaProyecto();
+    const tr=document.querySelector('#cuerpoProyecto tr:last-child');
+    tr.querySelector('select').value=l.lana;
+    tr.querySelector('input').value=l.gramos;
+  });
+
+  calcularTodo();
+}
+
+async function borrarProyecto(nombre){
+  if(!confirm("Borrar proyecto?")) return;
+
+  await db.from('proyectos').delete().eq('nombre',nombre);
+  cargarProyectos();
+}
+
+// ===== INIT =====
 async function init(){
-  await cargarLanas();   // 👈 primero lanas
+  await cargarLanas();     // primero lanas
   agregarFilaProyecto();
-  await cargarProyectos(); // 👈 después proyectos
+  await cargarProyectos(); // después proyectos
 }
 
 init();
