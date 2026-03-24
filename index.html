@@ -257,7 +257,8 @@ async function guardarProyectoActual(){
 
   const lineas=[];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
-    const lana = tr.querySelector('select').value;
+    
+    const lana = tr.querySelector('select').value || tr.dataset.lana;
     const gramos = parseFloat(tr.querySelector('input').value) || 0;
 
     lineas.push({
