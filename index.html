@@ -247,9 +247,14 @@ async function guardarProyectoActual(){
 
   const lineas=[];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
-    lineas.push({
-      lana:tr.querySelector('select').value,
-      gramos:tr.querySelector('input').value
+    const lana = tr.querySelector('select').value;
+    const gramos = parseFloat(tr.querySelector('input').value) || 0;
+
+      lineas.push({
+       lana,
+       gramos,
+        precio: catalogo[lana] || 0
+        });
     });
   });
 
@@ -289,7 +294,7 @@ async function cargarProyectos(){
 
     let total=0;
     lineas.forEach(l=>{
-      total+= (catalogo[l.lana]||0)*(l.gramos||0);
+      total+= (l.precio || catalogo[l.lana] || 0) * (l.gramos || 0);
     });
 
     const porc = Number(porcGanancia.value) || 60;
