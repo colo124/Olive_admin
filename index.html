@@ -162,7 +162,7 @@ async function agregarLana(){
   precioGramo.value='';
 
   await cargarLanas();
-  await cargarProyectos(); // recalcula bien
+  await cargarProyectos();
 }
 
 async function borrarLana(nombre){
@@ -217,21 +217,32 @@ function calcularTodo(){
 
 // ===== PROYECTOS =====
 async function guardarProyectoActual(){
-  const nombre=nombreProyecto.value;
+  const nombre = nombreProyecto.value;
   if(!nombre) return alert("Nombre!");
 
-  const lineas=[];
+  const lineas = [];
+
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     lineas.push({
-      lana:tr.querySelector('select').value,
-      gramos:tr.querySelector('input').value
+      lana: tr.querySelector('select').value,
+      gramos: tr.querySelector('input').value
     });
   });
 
-  await db.from('proyectos').upsert({
-    nombre,
-    lineas:JSON.stringify(lineas)
-  });
+  const { error } = await db.from('proyectos').upsert(
+    {
+      nombre,
+      lineas: JSON.stringify(lineas)
+    },
+    {
+      onConflict: 'nombre' // 🔥 arregla el 409
+    }
+  );
+
+  if(error){
+    alert(error.message);
+    return;
+  }
 
   cargarProyectos();
 }
