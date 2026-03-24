@@ -254,6 +254,7 @@ async function guardarProyectoActual(){
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana = tr.querySelector('select').value;
     const gramos = parseFloat(tr.querySelector('input').value) || 0;
+    const porc = Number(porcGanancia.value) || 60;
 
     lineas.push({
       lana,
@@ -263,7 +264,11 @@ async function guardarProyectoActual(){
   });
 
   await db.from('proyectos').upsert(
-    {nombre,lineas:JSON.stringify(lineas)},
+    {
+      nombre,
+      lineas: JSON.stringify(lineas),
+      porc_ganancia: porc
+    },
     {onConflict:'nombre'}
   );
 
@@ -301,7 +306,7 @@ async function cargarProyectos(){
       total+= (l.precio || catalogo[l.lana] || 0) * (l.gramos || 0);
     });
 
-    const porc = Number(porcGanancia.value) || 60;
+    const porc = Number(p.porc_ganancia) || 60;
     const final = total * (1 + porc/100);
 
     const card=document.createElement('div');
