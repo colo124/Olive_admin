@@ -217,7 +217,7 @@ function calcularTodo(){
   let total=0;
 
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
-    const lana=tr.querySelector('select').value;
+    const lana = tr.querySelector('select').value || tr.dataset.lana;
     const g=parseFloat(tr.querySelector('input').value)||0;
     let precio = parseFloat(tr.dataset.precio);
       if(!precio || isNaN(precio)){
@@ -376,12 +376,15 @@ async function cargarProyecto(nombre){
 
   // 👇 ahora sí asignamos valor
   select.value = l.lana;
-  // 🔥 GUARDAMOS PRECIO HISTÓRICO
+  
+  // 🔥 precio histórico
   const precioHist = l.precio ?? catalogo[l.lana] ?? 0;
   tr.dataset.precio = precioHist;
+  
+  // 🔥 FALTABA ESTO
+  tr.dataset.lana = l.lana;
+  
   tr.querySelector('input').value = l.gramos;
-});
-
   // 🔥 CLAVE
   actualizarSelects();
 
