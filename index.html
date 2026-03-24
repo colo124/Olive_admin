@@ -262,16 +262,24 @@ async function guardarProyectoActual(){
 }
 
 async function cargarProyectos(){
-  const {data}=await db.from('proyectos').select('*');
+  const {data,error}=await db.from('proyectos').select('*');
+  if(error){console.log(error);return;}
+
+  const filtro = buscador.value.toLowerCase();
   listaProyectos.innerHTML='';
 
-  data.forEach(p=>{
-    const lineas=JSON.parse(p.lineas||'[]');
+  (data||[])
+  .filter(p=>p.nombre.toLowerCase().includes(filtro))
+  .forEach(p=>{
+    let lineas=JSON.parse(p.lineas||'[]');
 
     let total=0;
     lineas.forEach(l=>{
-      total+=(catalogo[l.lana]||0)*(l.gramos||0);
+      total+= (catalogo[l.lana]||0)*(l.gramos||0);
     });
+
+    const porc = p.porc_ganancia || 60;
+    const final = total * (1 + porc/100);
 
     const card=document.createElement('div');
     card.className='project-card';
@@ -280,10 +288,13 @@ async function cargarProyectos(){
       <div>
         <div class="project-name">${p.nombre}</div>
         <div class="project-meta">${lineas.length} materiales</div>
-        <div class="project-meta">$${format(total)}</div>
+        <div class="project-meta">Costo: $${format(total)}</div>
+        <div class="project-meta">Ganancia: ${porc}%</div>
+        <div class="project-meta"><b>Final: $${format(final)}</b></div>
       </div>
       <div>
         <button onclick="event.stopPropagation();cargarProyecto('${p.nombre}')">Abrir</button>
+        <button class="delete-btn" onclick="event.stopPropagation();borrarProyecto('${p.nombre}')">X</button>
       </div>`;
 
     card.onclick=()=>cargarProyecto(p.nombre);
