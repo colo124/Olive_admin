@@ -357,37 +357,33 @@ async function cargarProyecto(nombre){
   cuerpoProyecto.innerHTML='';
 
   JSON.parse(data.lineas || '[]').forEach(l=>{
-  agregarFilaProyecto();
-  const tr=document.querySelector('#cuerpoProyecto tr:last-child');
+    agregarFilaProyecto();
+    const tr=document.querySelector('#cuerpoProyecto tr:last-child');
 
-  const select = tr.querySelector('select');
+    const select = tr.querySelector('select');
 
-  // 🔥 primero cargamos opciones
-  let opciones = Object.keys(catalogo)
-    .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
-    .join('');
+    let opciones = Object.keys(catalogo)
+      .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
+      .join('');
 
-  // 👇 si no existe, la agregamos como eliminada
-  if(l.lana && !catalogo[l.lana]){
-    opciones = `<option value="${l.lana}">${l.lana} (eliminada)</option>` + opciones;
-  }
+    if(l.lana && !catalogo[l.lana]){
+      opciones = `<option value="${l.lana}">${l.lana} (eliminada)</option>` + opciones;
+    }
 
-  select.innerHTML = '<option value=""></option>' + opciones;
+    select.innerHTML = '<option value=""></option>' + opciones;
 
-  // 👇 ahora sí asignamos valor
-  select.value = l.lana;
-  
-  // 🔥 precio histórico
-  const precioHist = l.precio ?? catalogo[l.lana] ?? 0;
-  tr.dataset.precio = precioHist;
-  
-  // 🔥 FALTABA ESTO
-  tr.dataset.lana = l.lana;
-  
-  tr.querySelector('input').value = l.gramos;
-  // 🔥 CLAVE
+    select.value = l.lana;
+
+    const precioHist = l.precio ?? catalogo[l.lana] ?? 0;
+    tr.dataset.precio = precioHist;
+
+    tr.dataset.lana = l.lana;
+
+    tr.querySelector('input').value = l.gramos;
+  });
+
+  // 🔥 ESTO VA AFUERA
   actualizarSelects();
-
   calcularTodo();
 }
 
