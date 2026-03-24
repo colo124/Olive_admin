@@ -48,9 +48,15 @@ input, select { padding:6px; margin:5px; }
 
 <div class="section">
 <h2>Lanas</h2>
+
 <input id="nuevaLana" placeholder="Nombre">
 <input id="precioGramo" type="number" placeholder="Precio">
 <button onclick="agregarLana()">Agregar</button>
+
+<table>
+<thead><tr><th>Lana</th><th>Precio</th></tr></thead>
+<tbody id="tablaLanas"></tbody>
+</table>
 </div>
 
 <div class="section">
@@ -84,6 +90,7 @@ Final: <span id="precioFinal">0</span>
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
+
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== DATA =====
@@ -93,12 +100,25 @@ let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
 function format(n){ return Math.round(n).toLocaleString('es-AR'); }
 
 // ===== LANAS =====
+function renderLanas(){
+  tablaLanas.innerHTML='';
+  Object.entries(catalogo).forEach(([n,p])=>{
+    tablaLanas.innerHTML += `<tr><td>${n}</td><td>$${format(p)}</td></tr>`;
+  });
+}
+
 function agregarLana(){
   const n = nuevaLana.value.trim();
   const p = parseFloat(precioGramo.value);
   if(!n||!p) return;
+
   catalogo[n]=p;
   localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
+
+  nuevaLana.value='';
+  precioGramo.value='';
+
+  renderLanas();
   actualizarSelects();
 }
 
@@ -116,7 +136,7 @@ function agregarFilaProyecto(){
 }
 
 function actualizarSelects(){
-  document.querySelectorAll('select').forEach(s=>{
+  document.querySelectorAll('#cuerpoProyecto select').forEach(s=>{
     const val=s.value;
     s.innerHTML='<option></option>'+Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
     if(val) s.value=val;
@@ -225,9 +245,11 @@ async function borrarProyecto(nombre){
   cargarProyectos();
 }
 
-// INIT
+// ===== INIT =====
+renderLanas();
 agregarFilaProyecto();
 actualizarSelects();
+calcularTodo();
 cargarProyectos();
 </script>
 
