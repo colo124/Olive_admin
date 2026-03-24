@@ -278,7 +278,7 @@ async function cargarProyectos(){
       total+= (catalogo[l.lana]||0)*(l.gramos||0);
     });
 
-    const porc = p.porc_ganancia || 60;
+    const porc = Number(porcGanancia.value) || 60;
     const final = total * (1 + porc/100);
 
     const card=document.createElement('div');
@@ -293,11 +293,13 @@ async function cargarProyectos(){
         <div class="project-meta"><b>Final: $${format(final)}</b></div>
       </div>
       <div>
-        <button onclick="event.stopPropagation();cargarProyecto('${p.nombre}')">Abrir</button>
+        <button onclick="event.stopPropagation(); (async () => { await cargarProyecto('${p.nombre}') })()">
         <button class="delete-btn" onclick="event.stopPropagation();borrarProyecto('${p.nombre}')">X</button>
       </div>`;
 
-    card.onclick=()=>cargarProyecto(p.nombre);
+    card.onclick = async () => {
+       await cargarProyecto(p.nombre);
+    };
     listaProyectos.appendChild(card);
   });
 }
