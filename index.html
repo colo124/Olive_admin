@@ -247,14 +247,15 @@ function nuevoProyecto(){
 
 // ===== PROYECTOS =====
 async function guardarProyectoActual(){
-  const nombre=nombreProyecto.value;
+  const nombre = nombreProyecto.value;
   if(!nombre) return alert("Nombre!");
+
+  const porc = Number(porcGanancia.value) || 60; // 👈 FALTABA ESTO
 
   const lineas=[];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana = tr.querySelector('select').value;
     const gramos = parseFloat(tr.querySelector('input').value) || 0;
-    const porc = Number(porcGanancia.value) || 60;
 
     lineas.push({
       lana,
