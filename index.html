@@ -219,8 +219,11 @@ function calcularTodo(){
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana=tr.querySelector('select').value;
     const g=parseFloat(tr.querySelector('input').value)||0;
-    const precio = catalogo[lana] ?? parseFloat(tr.dataset.precio) ?? 0;
-    
+    let precio = parseFloat(tr.dataset.precio);
+      if(!precio || isNaN(precio)){
+        precio = catalogo[lana] || 0;
+        tr.dataset.precio = precio; // 🔥 lo corregimos en vivo
+      }    
     const c=g*precio;
     tr.querySelector('.costo').textContent=format(c);
     total+=c;
