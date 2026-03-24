@@ -374,7 +374,8 @@ async function cargarProyecto(nombre){
   // 👇 ahora sí asignamos valor
   select.value = l.lana;
   // 🔥 GUARDAMOS PRECIO HISTÓRICO
-  tr.dataset.precio = l.precio || 0;
+  const precioHist = l.precio ?? catalogo[l.lana] ?? 0;
+  tr.dataset.precio = precioHist;
   tr.querySelector('input').value = l.gramos;
 });
 
