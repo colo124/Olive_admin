@@ -250,11 +250,10 @@ async function guardarProyectoActual(){
     const lana = tr.querySelector('select').value;
     const gramos = parseFloat(tr.querySelector('input').value) || 0;
 
-      lineas.push({
-       lana,
-       gramos,
-        precio: catalogo[lana] || 0
-        });
+    lineas.push({
+      lana,
+      gramos,
+      precio: catalogo[lana] || 0
     });
   });
 
