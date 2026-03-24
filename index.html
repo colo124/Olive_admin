@@ -12,26 +12,34 @@ body {
   max-width: 1100px;
   margin:auto;
   padding:20px;
-  background:#f5f5f5;
+  background:#eef3ef;
+}
+
+h1 {
+  text-align:center;
+  color:#2e7d32;
 }
 
 .section {
   background:white;
   padding:20px;
-  border-radius:12px;
+  border-radius:14px;
   margin-bottom:25px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
 button {
   padding:8px 12px;
   border:none;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
   background:#4caf50;
   color:white;
+  font-weight:bold;
 }
 
 .delete-btn { background:#f44336; }
+.secondary { background:#607d8b; }
 
 .project-card {
   background:white;
@@ -44,22 +52,40 @@ button {
   box-shadow:0 2px 8px rgba(0,0,0,0.1);
   cursor:pointer;
 }
+
 .project-card:hover { background:#f1f8e9; }
 
-.project-name { font-weight:bold; }
+.project-name { font-weight:bold; font-size:1.1em; }
 .project-meta { font-size:0.9em; color:#666; }
 
 input, select {
-  padding:6px;
+  padding:8px;
   margin:5px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+td, th {
+  padding:10px;
+  border-bottom:1px solid #ddd;
 }
 
 .total-box {
   background:#e8f5e9;
-  padding:15px;
+  padding:20px;
   margin-top:15px;
-  border-radius:10px;
-  font-weight:bold;
+  border-radius:12px;
+  font-size:1.1em;
+}
+
+.total-box div {
+  margin:6px 0;
 }
 </style>
 </head>
@@ -84,22 +110,26 @@ input, select {
 <div class="section">
 <h2>Proyecto</h2>
 
-<input id="nombreProyecto" placeholder="Nombre proyecto"><br>
+<input id="nombreProyecto" placeholder="Nombre proyecto">
 
 <button onclick="agregarFilaProyecto()">+ Lana</button>
 <button onclick="guardarProyectoActual()">💾 Guardar</button>
+<button class="secondary" onclick="nuevoProyecto()">🧹 Nuevo</button>
 
 <table>
 <thead><tr><th>Lana</th><th>Gramos</th><th>Costo</th><th></th></tr></thead>
 <tbody id="cuerpoProyecto"></tbody>
 </table>
 
-Ganancia % <input id="porcGanancia" type="number" value="60">
+Ganancia % <input id="porcGanancia" type="number" value="60" onchange="calcularTodo()">
 
 <div class="total-box">
-Total: <span id="totalGasto">0</span><br>
-Final: <span id="precioFinal">0</span>
+<div>🧾 Materiales: $<span id="totalGasto">0</span></div>
+<div>📈 Ganancia (%): <span id="porcentajeVista">60</span>%</div>
+<div>💰 Ganancia ($): $<span id="gananciaPura">0</span></div>
+<div style="font-size:1.3em; font-weight:bold;">💵 Precio final: $<span id="precioFinal">0</span></div>
 </div>
+
 </div>
 
 <div class="section">
@@ -109,27 +139,19 @@ Final: <span id="precioFinal">0</span>
 </div>
 
 <script>
-// ===== SUPABASE =====
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
-
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ===== DATA =====
 let catalogo = {};
 
-// ===== UTILS =====
 function format(n){ return Math.round(n).toLocaleString('es-AR'); }
 
 // ===== LANAS =====
 async function cargarLanas(){
-  const {data,error} = await db.from('lanas').select('*');
-
-  if(error){ console.log(error); return; }
-
+  const {data} = await db.from('lanas').select('*');
   catalogo = {};
-  data.forEach(l=> catalogo[l.nombre] = l.precio);
-
+  data.forEach(l=> catalogo[l.nombre]=l.precio);
   renderLanas();
   actualizarSelects();
 }
@@ -147,31 +169,14 @@ function renderLanas(){
 }
 
 async function agregarLana(){
-  const n = nuevaLana.value.trim();
-  const p = parseFloat(precioGramo.value);
+  const n=nuevaLana.value.trim();
+  const p=parseFloat(precioGramo.value);
   if(!n||!p) return;
 
-  const {error} = await db.from('lanas').upsert(
-    {nombre:n, precio:p},
-    {onConflict:'nombre'}
-  );
-
-  if(error){ alert(error.message); return; }
-
+  await db.from('lanas').upsert({nombre:n,precio:p},{onConflict:'nombre'});
   nuevaLana.value='';
   precioGramo.value='';
-
   await cargarLanas();
-  await cargarProyectos();
-}
-
-async function borrarLana(nombre){
-  if(!confirm("Borrar lana?")) return;
-
-  await db.from('lanas').delete().eq('nombre', nombre);
-
-  await cargarLanas();
-  await cargarProyectos();
 }
 
 // ===== PROYECTO =====
@@ -188,9 +193,7 @@ function agregarFilaProyecto(){
 
 function actualizarSelects(){
   document.querySelectorAll('#cuerpoProyecto select').forEach(s=>{
-    const val=s.value;
     s.innerHTML='<option></option>'+Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
-    if(val) s.value=val;
   });
 }
 
@@ -204,64 +207,59 @@ function calcularTodo(){
 
     const c=g*precio;
     tr.querySelector('.costo').textContent=format(c);
-
     total+=c;
   });
 
-  const porc=porcGanancia.value||0;
-  const final=total*(1+porc/100);
+  const porc=parseFloat(porcGanancia.value)||0;
+  const ganancia=total*(porc/100);
+  const final=total+ganancia;
 
   totalGasto.textContent=format(total);
   precioFinal.textContent=format(final);
+  gananciaPura.textContent=format(ganancia);
+  porcentajeVista.textContent=porc;
+}
+
+function nuevoProyecto(){
+  if(!confirm("Limpiar proyecto?")) return;
+
+  nombreProyecto.value='';
+  cuerpoProyecto.innerHTML='';
+  agregarFilaProyecto();
+  calcularTodo();
 }
 
 // ===== PROYECTOS =====
 async function guardarProyectoActual(){
-  const nombre = nombreProyecto.value;
+  const nombre=nombreProyecto.value;
   if(!nombre) return alert("Nombre!");
 
-  const lineas = [];
-
+  const lineas=[];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     lineas.push({
-      lana: tr.querySelector('select').value,
-      gramos: tr.querySelector('input').value
+      lana:tr.querySelector('select').value,
+      gramos:tr.querySelector('input').value
     });
   });
 
-  const { error } = await db.from('proyectos').upsert(
-    {
-      nombre,
-      lineas: JSON.stringify(lineas)
-    },
-    {
-      onConflict: 'nombre' // 🔥 arregla el 409
-    }
+  await db.from('proyectos').upsert(
+    {nombre,lineas:JSON.stringify(lineas)},
+    {onConflict:'nombre'}
   );
-
-  if(error){
-    alert(error.message);
-    return;
-  }
 
   cargarProyectos();
 }
 
 async function cargarProyectos(){
-  const {data,error}=await db.from('proyectos').select('*');
-  if(error){console.log(error);return;}
-
-  const filtro = buscador.value.toLowerCase();
+  const {data}=await db.from('proyectos').select('*');
   listaProyectos.innerHTML='';
 
-  (data||[])
-  .filter(p=>p.nombre.toLowerCase().includes(filtro))
-  .forEach(p=>{
-    let lineas=JSON.parse(p.lineas||'[]');
+  data.forEach(p=>{
+    const lineas=JSON.parse(p.lineas||'[]');
 
     let total=0;
     lineas.forEach(l=>{
-      total+= (catalogo[l.lana]||0)*(l.gramos||0);
+      total+=(catalogo[l.lana]||0)*(l.gramos||0);
     });
 
     const card=document.createElement('div');
@@ -275,7 +273,6 @@ async function cargarProyectos(){
       </div>
       <div>
         <button onclick="event.stopPropagation();cargarProyecto('${p.nombre}')">Abrir</button>
-        <button class="delete-btn" onclick="event.stopPropagation();borrarProyecto('${p.nombre}')">X</button>
       </div>`;
 
     card.onclick=()=>cargarProyecto(p.nombre);
@@ -284,18 +281,12 @@ async function cargarProyectos(){
 }
 
 async function cargarProyecto(nombre){
-  const {data,error} = await db.from('proyectos').select('*').eq('nombre',nombre).single();
+  const {data}=await db.from('proyectos').select('*').eq('nombre',nombre).single();
 
-  if(error){
-    console.log(error);
-    alert("Error cargando proyecto");
-    return;
-  }
-
-  nombreProyecto.value = data.nombre;
+  nombreProyecto.value=data.nombre;
   cuerpoProyecto.innerHTML='';
 
-  JSON.parse(data.lineas || '[]').forEach(l=>{
+  JSON.parse(data.lineas).forEach(l=>{
     agregarFilaProyecto();
     const tr=document.querySelector('#cuerpoProyecto tr:last-child');
     tr.querySelector('select').value=l.lana;
@@ -305,20 +296,12 @@ async function cargarProyecto(nombre){
   calcularTodo();
 }
 
-async function borrarProyecto(nombre){
-  if(!confirm("Borrar proyecto?")) return;
-
-  await db.from('proyectos').delete().eq('nombre',nombre);
-  cargarProyectos();
-}
-
 // ===== INIT =====
 async function init(){
-  await cargarLanas();     // primero lanas
+  await cargarLanas();
   agregarFilaProyecto();
-  await cargarProyectos(); // después proyectos
+  await cargarProyectos();
 }
-
 init();
 </script>
 
