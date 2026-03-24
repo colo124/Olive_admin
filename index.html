@@ -348,11 +348,28 @@ async function cargarProyecto(nombre){
   cuerpoProyecto.innerHTML='';
 
   JSON.parse(data.lineas || '[]').forEach(l=>{
-    agregarFilaProyecto();
-    const tr=document.querySelector('#cuerpoProyecto tr:last-child');
-    tr.querySelector('select').value = l.lana;
-    tr.querySelector('input').value = l.gramos;
-  });
+  agregarFilaProyecto();
+  const tr=document.querySelector('#cuerpoProyecto tr:last-child');
+
+  const select = tr.querySelector('select');
+
+  // 🔥 primero cargamos opciones
+  let opciones = Object.keys(catalogo)
+    .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
+    .join('');
+
+  // 👇 si no existe, la agregamos como eliminada
+  if(l.lana && !catalogo[l.lana]){
+    opciones = `<option value="${l.lana}">${l.lana} (eliminada)</option>` + opciones;
+  }
+
+  select.innerHTML = '<option value=""></option>' + opciones;
+
+  // 👇 ahora sí asignamos valor
+  select.value = l.lana;
+
+  tr.querySelector('input').value = l.gramos;
+});
 
   // 🔥 CLAVE
   actualizarSelects();
