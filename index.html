@@ -193,12 +193,17 @@ async function guardarProyectoActual() {
 }
 
 async function cargarProyectos() {
-  const {data} = await db.from('proyectos').select('*');
+  const {data, error} = await db.from('proyectos').select('*');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   const cont = document.getElementById('listaProyectos');
   cont.innerHTML='';
 
-  data.forEach(p=>{
+  (data || []).forEach(p=>{
     cont.innerHTML += `<div onclick="cargarProyecto('${p.nombre}')">${p.nombre}</div>`;
   });
 }
