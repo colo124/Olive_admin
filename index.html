@@ -303,16 +303,31 @@ async function cargarProyectos(){
 }
 
 async function cargarProyecto(nombre){
-  const {data}=await db.from('proyectos').select('*').eq('nombre',nombre).single();
+  const {data,error} = await db
+    .from('proyectos')
+    .select('*')
+    .eq('nombre',nombre)
+    .single();
 
-  nombreProyecto.value=data.nombre;
+  if(error){
+    console.log(error);
+    alert("Error cargando proyecto");
+    return;
+  }
+
+  nombreProyecto.value = data.nombre;
+
+  // 🔥 FORZAMOS número correcto SIEMPRE
+  const porc = Number(data.porc_ganancia);
+  porcGanancia.value = isNaN(porc) ? 60 : porc;
+
   cuerpoProyecto.innerHTML='';
 
-  JSON.parse(data.lineas).forEach(l=>{
+  JSON.parse(data.lineas || '[]').forEach(l=>{
     agregarFilaProyecto();
     const tr=document.querySelector('#cuerpoProyecto tr:last-child');
-    tr.querySelector('select').value=l.lana;
-    tr.querySelector('input').value=l.gramos;
+    tr.querySelector('select').value = l.lana;
+    tr.querySelector('input').value = l.gramos;
   });
 
   calcularTodo();
