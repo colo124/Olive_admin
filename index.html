@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Olive Admin</title>
+<title>Olive Admin PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -44,7 +44,7 @@ input, select { padding:6px; margin:5px; }
 
 <body>
 
-<h1>🫒 Olive Admin</h1>
+<h1>🫒 Olive Admin PRO</h1>
 
 <div class="section">
 <h2>Lanas</h2>
@@ -54,7 +54,7 @@ input, select { padding:6px; margin:5px; }
 <button onclick="agregarLana()">Agregar</button>
 
 <table>
-<thead><tr><th>Lana</th><th>Precio</th></tr></thead>
+<thead><tr><th>Lana</th><th>Precio</th><th></th></tr></thead>
 <tbody id="tablaLanas"></tbody>
 </table>
 </div>
@@ -94,32 +94,64 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== DATA =====
-let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
+let catalogo = {};
 
 // ===== UTILS =====
 function format(n){ return Math.round(n).toLocaleString('es-AR'); }
 
 // ===== LANAS =====
+async function cargarLanas(){
+  const {data,error} = await db.from('lanas').select('*');
+
+  if(error){ console.log(error); return; }
+
+  catalogo = {};
+
+  data.forEach(l=>{
+    catalogo[l.nombre] = l.precio;
+  });
+
+  renderLanas();
+  actualizarSelects();
+}
+
 function renderLanas(){
   tablaLanas.innerHTML='';
+
   Object.entries(catalogo).forEach(([n,p])=>{
-    tablaLanas.innerHTML += `<tr><td>${n}</td><td>$${format(p)}</td></tr>`;
+    tablaLanas.innerHTML += `
+      <tr>
+        <td>${n}</td>
+        <td>$${format(p)}</td>
+        <td><button class="delete-btn" onclick="borrarLana('${n}')">X</button></td>
+      </tr>
+    `;
   });
 }
 
-function agregarLana(){
+async function agregarLana(){
   const n = nuevaLana.value.trim();
   const p = parseFloat(precioGramo.value);
-  if(!n||!p) return;
 
-  catalogo[n]=p;
-  localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
+  if(!n || !p) return;
+
+  await db.from('lanas').upsert({
+    nombre:n,
+    precio:p
+  });
 
   nuevaLana.value='';
   precioGramo.value='';
 
-  renderLanas();
-  actualizarSelects();
+  cargarLanas();
+}
+
+async function borrarLana(nombre){
+  if(!confirm("Borrar lana?")) return;
+
+  await db.from('lanas').delete().eq('nombre', nombre);
+
+  cargarLanas();
 }
 
 // ===== PROYECTO =====
@@ -164,7 +196,7 @@ function calcularTodo(){
   precioFinal.textContent=format(final);
 }
 
-// ===== SUPABASE =====
+// ===== PROYECTOS =====
 async function guardarProyectoActual(){
   const nombre=nombreProyecto.value;
   if(!nombre) return alert("Nombre!");
@@ -240,16 +272,16 @@ async function cargarProyecto(nombre){
 }
 
 async function borrarProyecto(nombre){
-  if(!confirm("Borrar?")) return;
+  if(!confirm("Borrar proyecto?")) return;
+
   await db.from('proyectos').delete().eq('nombre',nombre);
+
   cargarProyectos();
 }
 
 // ===== INIT =====
-renderLanas();
+cargarLanas();
 agregarFilaProyecto();
-actualizarSelects();
-calcularTodo();
 cargarProyectos();
 </script>
 
