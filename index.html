@@ -219,8 +219,8 @@ function calcularTodo(){
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     const lana=tr.querySelector('select').value;
     const g=parseFloat(tr.querySelector('input').value)||0;
-    const precio=catalogo[lana]||0;
-
+    const precio = catalogo[lana] ?? parseFloat(tr.dataset.precio) ?? 0;
+    
     const c=g*precio;
     tr.querySelector('.costo').textContent=format(c);
     total+=c;
@@ -367,7 +367,8 @@ async function cargarProyecto(nombre){
 
   // 👇 ahora sí asignamos valor
   select.value = l.lana;
-
+  // 🔥 GUARDAMOS PRECIO HISTÓRICO
+  tr.dataset.precio = l.precio || 0;
   tr.querySelector('input').value = l.gramos;
 });
 
