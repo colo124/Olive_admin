@@ -194,15 +194,20 @@ function agregarFilaProyecto(){
 function actualizarSelects(){
   document.querySelectorAll('#cuerpoProyecto select').forEach(s => {
 
-    const valorActual = s.value; // 👈 guardamos selección
+    const valorActual = s.value;
 
-    s.innerHTML = '<option value=""></option>' + 
-      Object.keys(catalogo)
-        .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
-        .join('');
+    let opciones = Object.keys(catalogo)
+      .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
+      .join('');
 
-    // 👇 restauramos si sigue existiendo
-    if(valorActual && catalogo[valorActual]){
+    // 👇 si la lana ya no existe, la agregamos igual
+    if(valorActual && !catalogo[valorActual]){
+      opciones = `<option value="${valorActual}">${valorActual} (eliminada)</option>` + opciones;
+    }
+
+    s.innerHTML = '<option value=""></option>' + opciones;
+
+    if(valorActual){
       s.value = valorActual;
     }
   });
