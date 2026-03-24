@@ -360,24 +360,6 @@ async function cargarProyecto(nombre){
   calcularTodo();
 }
 
-  nombreProyecto.value = data.nombre;
-
-  // 🔥 FORZAMOS número correcto SIEMPRE
-  const porc = Number(data.porc_ganancia);
-  porcGanancia.value = isNaN(porc) ? 60 : porc;
-
-  cuerpoProyecto.innerHTML='';
-
-  JSON.parse(data.lineas || '[]').forEach(l=>{
-    agregarFilaProyecto();
-    const tr=document.querySelector('#cuerpoProyecto tr:last-child');
-    tr.querySelector('select').value = l.lana;
-    tr.querySelector('input').value = l.gramos;
-  });
-
-  calcularTodo();
-}
-
 // ===== INIT =====
 async function init(){
   await cargarLanas();
