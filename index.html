@@ -260,7 +260,21 @@ async function guardarProyectoActual(){
 
   cargarProyectos();
 }
+// ===== BORRAR LANA =====
+async function borrarLana(nombre){
+  if(!confirm("Eliminar lana?")) return;
 
+  await db.from('lanas').delete().eq('nombre', nombre);
+  await cargarLanas();
+}
+
+// ===== BORRAR PROYECTO =====
+async function borrarProyecto(nombre){
+  if(!confirm("Eliminar proyecto?")) return;
+
+  await db.from('proyectos').delete().eq('nombre', nombre);
+  await cargarProyectos();
+}
 async function cargarProyectos(){
   const {data,error}=await db.from('proyectos').select('*');
   if(error){console.log(error);return;}
