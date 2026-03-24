@@ -192,8 +192,19 @@ function agregarFilaProyecto(){
 }
 
 function actualizarSelects(){
-  document.querySelectorAll('#cuerpoProyecto select').forEach(s=>{
-    s.innerHTML='<option></option>'+Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
+  document.querySelectorAll('#cuerpoProyecto select').forEach(s => {
+
+    const valorActual = s.value; // 👈 guardamos selección
+
+    s.innerHTML = '<option value=""></option>' + 
+      Object.keys(catalogo)
+        .map(n => `<option value="${n}">${n} ($${format(catalogo[n])}/g)</option>`)
+        .join('');
+
+    // 👇 restauramos si sigue existiendo
+    if(valorActual && catalogo[valorActual]){
+      s.value = valorActual;
+    }
   });
 }
 
