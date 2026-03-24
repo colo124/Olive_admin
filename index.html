@@ -1,234 +1,225 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Olive Admin - Tufting</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫒</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 1100px; margin: 30px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
-    h1 { text-align: center; color: #2e7d32; margin-bottom: 10px; }
-    .logo { font-size: 2em; margin-right: 10px; }a
-    h2 { color: #388e3c; }
-    .section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.12); margin-bottom: 35px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background: #e8f5e9; }
-    input, select, textarea, button { padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
-    textarea { width: 100%; height: 130px; resize: vertical; }
-    button { background: #4caf50; color: white; border: none; cursor: pointer; }
-    button:hover { background: #43a047; }
-    .delete-btn { background: #f44336; }
-    .delete-btn:hover { background: #d32f2f; }
-    .total-box { font-size: 1.8em; font-weight: bold; margin: 30px 0; padding: 25px; background: #e8f5e9; border-radius: 12px; text-align: center; border: 2px solid #81c784; }
-    .project-item { padding: 14px; background: #f1f8e9; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; cursor: pointer; }
-    .project-item:hover { background: #dcedc8; }
-    .number { font-variant-numeric: tabular-nums; }
-  </style>
-</head>
-<body>
-
-<h1><span class="logo">🫒</span> Olive Admin</h1>
-
-<div class="section">
-  <h2>1. Administrar Lanas</h2>
-  <input type="text" id="nuevaLana" placeholder="Nombre lana">
-  <input type="number" id="precioGramo" placeholder="Precio por gramo (ARS)">
-  <button onclick="agregarLana()">+ Agregar</button>
-  <button onclick="resetearCatalogo()" class="delete-btn" style="margin-left:10px;">Limpiar Catálogo</button>
-
-  <table>
-    <thead><tr><th>Lana</th><th>Precio</th><th></th></tr></thead>
-    <tbody id="cuerpoCatalogo"></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <h2>2. Proyecto Actual</h2>
-  <button onclick="nuevoProyecto()">Nuevo Proyecto</button>
-  <button onclick="guardarProyectoActual()">💾 Guardar en Supabase</button><br><br>
-
-  <input type="text" id="nombreProyecto" placeholder="Nombre del proyecto"><br><br>
-  <textarea id="descripcionProyecto" placeholder="Cliente, fecha, observaciones..."></textarea>
-
-  <table>
-    <thead><tr><th>Lana</th><th>Gramos</th><th>Costo</th><th></th></tr></thead>
-    <tbody id="cuerpoProyecto"></tbody>
-  </table>
-
-  <button onclick="agregarFilaProyecto()">+ Agregar Lana</button><br><br>
-
-  Ganancia %: <input type="number" id="porcGanancia" value="60">
-
-  <div class="total-box">
-    Gasto total: <span id="totalGasto">0</span> ARS<br>
-    Precio: <span id="precioFinal">0</span> ARS<br>
-    Ganancia: <span id="gananciaPura">0</span> ARS
-  </div>
-</div>
-
-<div class="section">
-  <h2>Proyectos en la Nube</h2>
-  <div id="listaProyectos"></div>
-</div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olive Admin PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<style>
+body { font-family: Arial; max-width: 1100px; margin: auto; padding: 20px; background:#f5f5f5; }
+
+.section { background:white; padding:20px; border-radius:12px; margin-bottom:25px; }
+
+button { padding:8px 12px; border:none; border-radius:6px; cursor:pointer; background:#4caf50; color:white; }
+.delete-btn { background:#f44336; }
+
+.project-card {
+  background:white;
+  border-radius:12px;
+  padding:15px;
+  margin:10px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  cursor:pointer;
+  transition:0.2s;
+}
+.project-card:hover { transform:scale(1.02); background:#f1f8e9; }
+
+.project-name { font-weight:bold; font-size:1.1em; }
+.project-meta { font-size:0.9em; color:#666; }
+
+input, select { padding:6px; margin:5px; }
+
+.total-box {
+  background:#e8f5e9;
+  padding:15px;
+  margin-top:15px;
+  border-radius:10px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🫒 Olive Admin PRO</h1>
+
+<div class="section">
+<h2>Lanas</h2>
+<input id="nuevaLana" placeholder="Nombre">
+<input id="precioGramo" type="number" placeholder="Precio">
+<button onclick="agregarLana()">Agregar</button>
+</div>
+
+<div class="section">
+<h2>Proyecto</h2>
+
+<input id="nombreProyecto" placeholder="Nombre proyecto"><br>
+
+<button onclick="agregarFilaProyecto()">+ Lana</button>
+<button onclick="guardarProyectoActual()">💾 Guardar</button>
+
+<table>
+<thead><tr><th>Lana</th><th>Gramos</th><th>Costo</th><th></th></tr></thead>
+<tbody id="cuerpoProyecto"></tbody>
+</table>
+
+Ganancia % <input id="porcGanancia" type="number" value="60">
+
+<div class="total-box">
+Total: <span id="totalGasto">0</span><br>
+Final: <span id="precioFinal">0</span>
+</div>
+</div>
+
+<div class="section">
+<h2>Proyectos</h2>
+
+<input id="buscador" placeholder="Buscar..." oninput="cargarProyectos()">
+
+<div id="listaProyectos"></div>
+</div>
+
 <script>
-// ==================== SUPABASE ====================
 const SUPABASE_URL = 'https://gfesndaxezuplugbgjrp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZXNuZGF4ZXp1cGx1Z2JnanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTY4NDMsImV4cCI6MjA4OTgzMjg0M30.yKz7WwnGK1NU54xFpqK282rbt5ejqTrDGLc8Yhe8LEw';
 
-// 🔥 FIX IMPORTANTE (minúscula)
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ==================== DATA ====================
 let catalogo = JSON.parse(localStorage.getItem('tuftingCatalogo') || '{}');
 
-// ==================== UTILS ====================
-function formatARS(n) {
-  return Math.round(n).toLocaleString('es-AR');
-}
+function format(n){ return Math.round(n).toLocaleString('es-AR'); }
 
-// ==================== CATÁLOGO ====================
-function guardarCatalogo() {
+// ===== LANAS =====
+function agregarLana(){
+  const n = nuevaLana.value.trim();
+  const p = parseFloat(precioGramo.value);
+  if(!n||!p) return;
+  catalogo[n]=p;
   localStorage.setItem('tuftingCatalogo', JSON.stringify(catalogo));
-  renderCatalogo();
-  actualizarSelectsProyecto();
 }
 
-function agregarLana() {
-  const nombre = document.getElementById('nuevaLana').value.trim();
-  const precio = parseFloat(document.getElementById('precioGramo').value);
-  if (!nombre || !precio) return alert('Datos inválidos');
-
-  catalogo[nombre] = precio;
-  guardarCatalogo();
-}
-
-function borrarLana(n) {
-  delete catalogo[n];
-  guardarCatalogo();
-}
-
-function renderCatalogo() {
-  const t = document.getElementById('cuerpoCatalogo');
-  t.innerHTML = '';
-  Object.entries(catalogo).forEach(([n,p])=>{
-    t.innerHTML += `<tr><td>${n}</td><td>$${formatARS(p)}</td><td><button onclick="borrarLana('${n}')">x</button></td></tr>`;
-  });
-}
-
-function resetearCatalogo() {
-  catalogo = {};
-  localStorage.removeItem('tuftingCatalogo');
-  renderCatalogo();
-}
-
-// ==================== PROYECTO ====================
-function agregarFilaProyecto() {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><select class="lana-select" onchange="calcularTodo()"></select></td>
-    <td><input type="number" value="0" onchange="calcularTodo()"></td>
+// ===== PROYECTO =====
+function agregarFilaProyecto(){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><select></select></td>
+    <td><input type="number" value="0"></td>
     <td class="costo">0</td>
-    <td><button onclick="this.closest('tr').remove(); calcularTodo()">x</button></td>
+    <td><button onclick="this.closest('tr').remove();calcular()">x</button></td>
   `;
-  document.getElementById('cuerpoProyecto').appendChild(tr);
-  actualizarSelectsProyecto();
+  cuerpoProyecto.appendChild(tr);
+  actualizarSelects();
 }
 
-function actualizarSelectsProyecto() {
-  document.querySelectorAll('.lana-select').forEach(s=>{
-    s.innerHTML = '<option></option>' + 
-      Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
+function actualizarSelects(){
+  document.querySelectorAll('select').forEach(s=>{
+    s.innerHTML = Object.keys(catalogo).map(n=>`<option>${n}</option>`).join('');
   });
 }
 
-function calcularTodo() {
-  let total = 0;
-
+function calcular(){
+  let total=0;
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
-    const lana = tr.querySelector('select').value;
-    const gramos = parseFloat(tr.querySelector('input').value)||0;
-    const precio = catalogo[lana]||0;
-
-    const costo = gramos * precio;
-    tr.querySelector('.costo').textContent = formatARS(costo);
-
-    total += costo;
+    const lana=tr.querySelector('select').value;
+    const g=parseFloat(tr.querySelector('input').value)||0;
+    const precio=catalogo[lana]||0;
+    const c=g*precio;
+    tr.querySelector('.costo').textContent=format(c);
+    total+=c;
   });
-
-  const porc = parseFloat(document.getElementById('porcGanancia').value)||0;
-  const final = total * (1+porc/100);
-
-  document.getElementById('totalGasto').textContent = formatARS(total);
-  document.getElementById('precioFinal').textContent = formatARS(final);
-  document.getElementById('gananciaPura').textContent = formatARS(final-total);
+  const porc=porcGanancia.value||0;
+  const final=total*(1+porc/100);
+  totalGasto.textContent=format(total);
+  precioFinal.textContent=format(final);
 }
 
-// ==================== SUPABASE ====================
-async function guardarProyectoActual() {
-  const nombre = document.getElementById('nombreProyecto').value;
-  if (!nombre) return alert('Poné nombre');
+// ===== SUPABASE =====
+async function guardarProyectoActual(){
+  const nombre=nombreProyecto.value;
+  if(!nombre) return alert("Nombre!");
 
-  const lineas = [];
-
+  const lineas=[];
   document.querySelectorAll('#cuerpoProyecto tr').forEach(tr=>{
     lineas.push({
-      lana: tr.querySelector('select').value,
-      gramos: tr.querySelector('input').value
+      lana:tr.querySelector('select').value,
+      gramos:tr.querySelector('input').value
     });
   });
 
   await db.from('proyectos').upsert({
     nombre,
-    lineas: JSON.stringify(lineas)
+    lineas:JSON.stringify(lineas)
   });
 
-  alert('Guardado');
   cargarProyectos();
 }
 
-async function cargarProyectos() {
-  const {data, error} = await db.from('proyectos').select('*');
+async function cargarProyectos(){
+  const {data,error}=await db.from('proyectos').select('*');
+  if(error){console.log(error);return;}
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  const filtro = buscador.value.toLowerCase();
+  listaProyectos.innerHTML='';
 
-  const cont = document.getElementById('listaProyectos');
-  cont.innerHTML='';
+  data
+  .filter(p=>p.nombre.toLowerCase().includes(filtro))
+  .forEach(p=>{
+    let lineas=JSON.parse(p.lineas||'[]');
 
-  (data || []).forEach(p=>{
-    cont.innerHTML += `<div onclick="cargarProyecto('${p.nombre}')">${p.nombre}</div>`;
+    let total=0;
+    lineas.forEach(l=>{
+      total+= (catalogo[l.lana]||0) * (l.gramos||0);
+    });
+
+    const card=document.createElement('div');
+    card.className='project-card';
+
+    card.innerHTML=`
+      <div>
+        <div class="project-name">${p.nombre}</div>
+        <div class="project-meta">${lineas.length} items</div>
+        <div class="project-meta">$${format(total)}</div>
+      </div>
+
+      <div>
+        <button onclick="event.stopPropagation();cargarProyecto('${p.nombre}')">Abrir</button>
+        <button class="delete-btn" onclick="event.stopPropagation();borrarProyecto('${p.nombre}')">X</button>
+      </div>
+    `;
+
+    card.onclick=()=>cargarProyecto(p.nombre);
+
+    listaProyectos.appendChild(card);
   });
 }
 
-async function cargarProyecto(nombre) {
-  const {data} = await db.from('proyectos')
-    .select('*')
-    .eq('nombre',nombre)
-    .single();
+async function cargarProyecto(nombre){
+  const {data}=await db.from('proyectos').select('*').eq('nombre',nombre).single();
 
-  document.getElementById('cuerpoProyecto').innerHTML='';
+  cuerpoProyecto.innerHTML='';
 
   JSON.parse(data.lineas).forEach(l=>{
     agregarFilaProyecto();
-
-    const tr = document.querySelector('#cuerpoProyecto tr:last-child');
+    const tr=document.querySelector('#cuerpoProyecto tr:last-child');
     tr.querySelector('select').value=l.lana;
     tr.querySelector('input').value=l.gramos;
   });
 
-  calcularTodo();
+  calcular();
 }
 
-// ==================== INIT ====================
-renderCatalogo();
+async function borrarProyecto(nombre){
+  if(!confirm("Borrar?")) return;
+  await db.from('proyectos').delete().eq('nombre',nombre);
+  cargarProyectos();
+}
+
+// INIT
 agregarFilaProyecto();
 cargarProyectos();
 </script>
